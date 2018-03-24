@@ -41,17 +41,18 @@ class Embedder(object):
       xnmt.expression_sequence.ExpressionSequence: An expression sequence representing vectors of each word in the input.
     """
     # single mode
+    #import pdb;pdb.set_trace()
     if not xnmt.batcher.is_batched(sent):
       embeddings = [self.embed(word) for word in sent]
     # minibatch mode
     else:
       embeddings = []
+      #import pdb;pdb.set_trace()
       seq_len = len(sent[0])
       for single_sent in sent: assert len(single_sent)==seq_len
       for word_i in range(seq_len):
         batch = xnmt.batcher.mark_as_batch([single_sent[word_i] for single_sent in sent])
         embeddings.append(self.embed(batch))
-
     return ExpressionSequence(expr_list=embeddings, mask=sent.mask if xnmt.batcher.is_batched(sent) else None)
 
   def choose_vocab(self, vocab, yaml_path, src_reader, trg_reader):
@@ -237,6 +238,7 @@ class SimpleWordEmbedder(Embedder, Serializable):
     self.word_id_mask = None
 
   def embed(self, x):
+    #import pdb; pdb.set_trace()
     if self.train and self.word_dropout > 0.0 and self.word_id_mask is None:
       batch_size = len(x) if xnmt.batcher.is_batched(x) else 1
       self.word_id_mask = [set(np.random.choice(self.vocab_size, int(self.vocab_size * self.word_dropout), replace=False)) for _ in range(batch_size)]

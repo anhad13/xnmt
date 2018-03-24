@@ -172,6 +172,7 @@ class MlpSoftmaxDecoder(RnnDecoder, Serializable):
       MlpSoftmaxDecoderState:
     """
     rnn_state = self.fwd_lstm.initial_state()
+    #import pdb;pdb.set_trace()
     rnn_state = rnn_state.set_s(self.bridge.decoder_init(enc_final_states))
     zeros = dy.zeros(self.input_dim) if self.input_feeding else None
     rnn_state = rnn_state.add_input(dy.concatenate([ss_expr, zeros]))

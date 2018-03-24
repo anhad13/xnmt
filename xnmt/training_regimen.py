@@ -103,7 +103,9 @@ class SimpleTrainingRegimen(SimpleTrainingTask, TrainingRegimen, Serializable):
     self.load_data()
     self.model.set_train(update_weights)
     for src,trg in self.next_minibatch():
+      self.load_data()
       dy.renew_cg(immediate_compute=settings.IMMEDIATE_COMPUTE, check_validity=settings.CHECK_VALIDITY)
+      #import pdb; pdb.set_trace()
       loss = self.training_step(src, trg)
       if update_weights: self.update_weights(loss, self.trainer, self.dynet_profiling)
       if self.checkpoint_needed():

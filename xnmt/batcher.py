@@ -176,9 +176,9 @@ class SortBatcher(Batcher):
 
   def pack(self, src, trg):
     if self.break_ties_randomly:
-      order = np.argsort([self.sort_key(x) + random.uniform(-SortBatcher.__tiebreaker_eps, SortBatcher.__tiebreaker_eps) for x in zip(src,trg)])
+      order = np.argsort([self.sort_key(x) + random.uniform(-SortBatcher.__tiebreaker_eps, SortBatcher.__tiebreaker_eps) for x in zip(trg)])
     else:
-      order = np.argsort([self.sort_key(x) for x in zip(src,trg)])
+      order = np.argsort([self.sort_key(x) for x in zip(trg)])
     return self.pack_by_order(src, trg, order)
 
   def is_random(self):

@@ -1,0 +1,71 @@
+initialized exp_global.param_init: GlorotInitializer@112445445176({})
+initialized exp_global.bias_init: ZeroInitializer@112445444784({})
+initialized exp_global: ExpGlobal@112445445904({'model_file': 'examples/models/standard.mod', 'log_file': 'examples/logs/standard.log', 'dropout': 0.3, 'default_layer_dim': 512, 'param_init': GlorotInitializer@112445447248, 'bias_init': ZeroInitializer@112445448144, 'commandline_args': Namespace(dynet_autobatch=None, dynet_devices=None, dynet_gpu=False, dynet_gpu_ids=None, dynet_gpus=None, dynet_mem=None, dynet_profiling=None, dynet_seed=None, dynet_viz=False, dynet_weight_decay=None, experiment_name=[], experiments_file='examples/01_standard.yaml', generate_doc=False, settings='settings.standard')})
+initialized model.src_reader.vocab: Vocab@112445444616({'vocab_file': 'examples/data/head.en.vocab'})
+initialized model.src_reader: TreeTextReader@112445444840({'vocab': Vocab@112445447920})
+initialized model.trg_reader.vocab: Vocab@112445444504({'vocab_file': 'examples/data/head.ja.vocab'})
+initialized model.trg_reader: PlainTextReader@112445445512({'vocab': Vocab@112445444616})
+for model.src_embedder.exp_global: reusing previously initialized ExpGlobal@112445446632
+for model.src_embedder.src_reader: reusing previously initialized TreeTextReader@112445470928
+for model.src_embedder.trg_reader: reusing previously initialized PlainTextReader@112445472440
+initialized model.src_embedder: SimpleWordEmbedder@112445447976({'exp_global': ExpGlobal@112445446632, 'src_reader': TreeTextReader@112445470928, 'trg_reader': PlainTextReader@112445472440, 'yaml_path': model.src_embedder})
+for model.encoder.exp_global: reusing previously initialized ExpGlobal@112445446632
+initialized model.encoder: TreeLSTMSeqTransducer@112445445232({'exp_global': ExpGlobal@112445446632, 'layers': 1, 'hidden_dim': 512})
+for model.attender.exp_global: reusing previously initialized ExpGlobal@112445446632
+initialized model.attender: MlpAttender@112445446016({'exp_global': ExpGlobal@112445446632, 'input_dim': 512, 'state_dim': 512, 'hidden_dim': 512})
+for model.trg_embedder.exp_global: reusing previously initialized ExpGlobal@112445446632
+for model.trg_embedder.src_reader: reusing previously initialized TreeTextReader@112445470928
+for model.trg_embedder.trg_reader: reusing previously initialized PlainTextReader@112445472440
+initialized model.trg_embedder: SimpleWordEmbedder@112445444224({'exp_global': ExpGlobal@112445446632, 'emb_dim': 512, 'src_reader': TreeTextReader@112445470928, 'trg_reader': PlainTextReader@112445472440, 'yaml_path': model.trg_embedder})
+for model.decoder.exp_global: reusing previously initialized ExpGlobal@112445446632
+for model.decoder.bridge.exp_global: reusing previously initialized ExpGlobal@112445446632
+initialized model.decoder.bridge: CopyBridge@112445445344({'dec_layers': 1, 'dec_dim': 512, 'exp_global': ExpGlobal@112445446632})
+for model.decoder.trg_reader: reusing previously initialized PlainTextReader@112445472440
+initialized model.decoder: MlpSoftmaxDecoder@112445445960({'exp_global': ExpGlobal@112445446632, 'layers': 1, 'input_dim': 512, 'lstm_dim': 512, 'mlp_hidden_dim': 512, 'trg_embed_dim': 512, 'bridge': CopyBridge@112444963752, 'trg_reader': PlainTextReader@112445472440})
+initialized train.batcher: SrcBatcher@112445445736({'batch_size': 32})
+for model.inference.batcher: reusing previously initialized SrcBatcher@112444963136
+initialized model.inference: SimpleInference@112445445792({'batcher': SrcBatcher@112444963136})
+initialized model: TreeTranslator@112445445624({'src_reader': TreeTextReader@112445470928, 'trg_reader': PlainTextReader@112445472440, 'src_embedder': SimpleWordEmbedder@112445472664, 'encoder': TreeLSTMSeqTransducer@112444964144, 'attender': MlpAttender@112444964312, 'trg_embedder': SimpleWordEmbedder@112444962968, 'decoder': MlpSoftmaxDecoder@112444964032, 'inference': SimpleInference@112444964200})
+for train.model: reusing previously initialized TreeTranslator@112445447136
+for train.trainer.exp_global: reusing previously initialized ExpGlobal@112445446632
+initialized train.trainer: AdamTrainer@112445447080({'exp_global': ExpGlobal@112445446632, 'alpha': 0.001})
+for train.dev_tasks.0.model: reusing previously initialized TreeTranslator@112445447136
+for train.dev_tasks.0.batcher: reusing previously initialized SrcBatcher@112444963136
+initialized train.dev_tasks.0: LossEvalTask@112445446856({'src_file': 'examples/data/head.en', 'ref_file': 'examples/data/head.ja', 'model': TreeTranslator@112445447136, 'batcher': SrcBatcher@112444963136})
+for train.exp_global: reusing previously initialized ExpGlobal@112445446632
+initialized train: SimpleTrainingRegimen@112445446520({'model': TreeTranslator@112445447136, 'src_file': 'examples/data/head.en', 'trg_file': 'examples/data/head.ja', 'batcher': SrcBatcher@112444963136, 'trainer': AdamTrainer@112445379136, 'run_for_epochs': 2, 'dev_tasks': [LossEvalTask@112445447976], 'exp_global': ExpGlobal@112445446632})
+for evaluate.0.model: reusing previously initialized TreeTranslator@112445447136
+initialized evaluate.0: AccuracyEvalTask@112445447192({'src_file': 'examples/data/head.en', 'ref_file': 'examples/data/head.ja', 'hyp_file': 'examples/output/standard.test_hyp', 'model': TreeTranslator@112445447136, 'eval_metrics': 'bleu,wer'})
+initialized : Experiment@112445444280({'exp_global': ExpGlobal@112445446632, 'model': TreeTranslator@112445447136, 'train': SimpleTrainingRegimen@112445445512, 'evaluate': [AccuracyEvalTask@112445381824]})
+> Training
+Loading data
+Loading data
+Epoch 1.0000: train_loss/word=4.630866 (words=25, words/sec=170.02, time=0-00:00:00)
+> Checkpoint
+Epoch 1.0000 dev Loss: 4.513 (words=25, words/sec=177.50, time=0-00:00:00)
+Epoch 1.0000: best dev score, writing model to examples/models/standard.mod
+Loading data
+Epoch 2.0000: train_loss/word=4.511330 (words=25, words/sec=182.39, time=0-00:00:04)
+> Checkpoint
+Epoch 2.0000 dev Loss: 4.340 (words=25, words/sec=192.50, time=0-00:00:05)
+Epoch 2.0000: best dev score, writing model to examples/models/standard.mod
+reverting learned weights to best checkpoint..
+> Performing final evaluation
+> /Users/anhadmohananey/Desktop/NLPResearch/xnmt/xnmt/translator.py(183)generate()
+-> transitions=list(src[1])
+(Pdb)
+<xnmt.input.SimpleSentenceInput object at 0x1a2e445d30>
+(Pdb)
+***
+Error in argument: '(sents)'
+(Pdb)
+67
+(Pdb)
+***
+IndexError: list index out of range
+(Pdb)
+<map object at 0x1a2e45b048>
+(Pdb)
+***
+NameError: name 'sec' is not defined
+(Pdb)

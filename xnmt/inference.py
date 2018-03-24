@@ -70,6 +70,8 @@ class SimpleInference(Serializable):
     is_reporting = issubclass(generator.__class__, Reportable) and args["report_path"] is not None
     # Corpus
     src_corpus = list(generator.src_reader.read_sents(args["src_file"]))
+    #ss=list(src_corpus[1])
+    #import pdb;pdb.set_trace()
     # Get reference if it exists and is necessary
     if args["mode"] == "forced" or args["mode"] == "forceddebug":
       if args["ref_file"] == None:
@@ -117,13 +119,17 @@ class SimpleInference(Serializable):
     # Perform generation of output
     with open(args["trg_file"], 'wt', encoding='utf-8') as fp:  # Saving the translated output to a trg file
       src_ret=[]
-      for i, src in enumerate(src_corpus):
+      ss1=list(src_corpus[0])
+      ss2=list(src_corpus[1])
+      #import pdb;pdb.set_trace()
+      for i in range(len(src_corpus)):
         # This is necessary when the batcher does some sort of pre-processing, e.g.
         # when the batcher pads to a particular number of dimensions
+        src=[[ss1[0]],[ss2[0]]]
+        #import pdb;pdb.set_trace()
         if self.batcher:
           self.batcher.add_single_batch(src_curr=[src], trg_curr=None, src_ret=src_ret, trg_ret=None)
           src = src_ret.pop()[0]
-
         # Do the decoding
         if args["max_src_len"] is not None and len(src) > args["max_src_len"]:
           output_txt = NO_DECODING_ATTEMPTED

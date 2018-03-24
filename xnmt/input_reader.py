@@ -109,6 +109,68 @@ class PlainTextReader(BaseTextReader, Serializable):
   def vocab_size(self):
     return len(self.vocab)
 
+class TreeTextReader(BaseTextReader, Serializable):
+  """
+  Handles the typical case of reading plain text files,
+  with one sent per line.
+  
+  Args:
+    vocab (Vocab): turns tokens strings into token IDs
+    include_vocab_reference (bool): TODO document me
+  """
+  yaml_tag = '!TreeTextReader'
+  def __init__(self, vocab=None, include_vocab_reference=False):
+    self.vocab = vocab
+    self.include_vocab_reference = include_vocab_reference
+    if vocab is not None:
+      self.vocab.freeze()
+      self.vocab.set_unk(Vocab.UNK_STR)
+
+  def read_sents(self, filename, filter_ids=None):
+    def convert_binary_bracketing(parse, lowercase=False):
+      transitions = []
+      tokens = []
+      for word in parse.split(' '):
+          if word[0] != "(":
+              if word == ")":
+                  transitions.append(1)
+              else:
+                  # Downcase all words to match GloVe.
+                  if lowercase:
+                      tokens.append(word.lower())
+                  else:
+                      tokens.append(word)
+                  transitions.append(0)
+      return tokens, transitions
+    def get_tokens(parse):
+      return convert_binary_bracketing(parse)[0]
+
+    def get_transitions(parse):
+      return convert_binary_bracketing(parse)[1]
+
+    if self.vocab is None:
+      self.vocab = Vocab()
+    vocab_reference = self.vocab if self.include_vocab_reference else None
+    #import pdb;pdb.set_trace()
+    r1=map(lambda l: SimpleSentenceInput([self.vocab.convert(word) for word in get_tokens(l)] + \
+                                             [self.vocab.convert(Vocab.ES_STR)], vocab_reference),
+               self.iterate_filtered(filename, filter_ids))
+    r2=map(lambda l: get_transitions(l),
+               self.iterate_filtered(filename, filter_ids))
+    return [r1,r2]
+
+  def count_words(self, trg_words):
+    trg_cnt = 0
+    for x in trg_words:
+      if type(x) == int:
+        trg_cnt += 1 if x != Vocab.ES else 0
+      else:
+        trg_cnt += sum([1 if y != Vocab.ES else 0 for y in x])
+    return trg_cnt
+
+  def vocab_size(self):
+    return len(self.vocab)
+
 class SegmentationTextReader(PlainTextReader):
   yaml_tag = '!SegmentationTextReader'
   

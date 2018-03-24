@@ -1,0 +1,16 @@
+- {data: train, epoch: 1.0, key: train_loss, loss: 4.630865783691406, time: '0-00:00:00',
+  words: 25, words_per_sec: 170.0205112406463}
+- epoch: 1.0
+  key: dev_loss
+  score: !LossScore {loss: 4.512531127929687, loss_stats: null}
+  time: 0-00:00:00
+  words: 25
+  words_per_sec: 177.49881083569898
+- {data: train, epoch: 2.0, key: train_loss, loss: 4.511329956054688, time: '0-00:00:04',
+  words: 25, words_per_sec: 182.38990866380593}
+- epoch: 2.0
+  key: dev_loss
+  score: !LossScore {loss: 4.339671020507812, loss_stats: null}
+  time: 0-00:00:05
+  words: 25
+  words_per_sec: 192.4988709754405

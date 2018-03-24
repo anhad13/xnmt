@@ -8,6 +8,7 @@ from xnmt.serialize.serializable import Serializable
 from xnmt.events import register_handler, handle_xnmt_event
 from xnmt.transducer import SeqTransducer, FinalTransducerState
 from xnmt.serialize.tree_tools import Ref, Path
+from itertools import zip_longest
 
 class UniLSTMSeqTransducer(SeqTransducer, Serializable):
   """
@@ -176,7 +177,6 @@ class BiLSTMSeqTransducer(SeqTransducer, Serializable):
       new_forward_es = self.forward_layers[layer_i]([forward_es, ReversedExpressionSequence(rev_backward_es)])
       rev_backward_es = ExpressionSequence(self.backward_layers[layer_i]([ReversedExpressionSequence(forward_es), rev_backward_es]).as_list(), mask=mask)
       forward_es = new_forward_es
-
     self._final_states = [FinalTransducerState(dy.concatenate([self.forward_layers[layer_i].get_final_states()[0].main_expr(),
                                                             self.backward_layers[layer_i].get_final_states()[0].main_expr()]),
                                             dy.concatenate([self.forward_layers[layer_i].get_final_states()[0].cell_expr(),
@@ -242,4 +242,126 @@ class CustomLSTMSeqTransducer(SeqTransducer):
         c.append(dy.cmult(i_ft, c[-1]) + dy.cmult(i_it, i_gt))
       h.append(dy.cmult(i_ot, dy.tanh(c[-1])))
     return h
+
+
+class TreeLSTMSeqTransducer(SeqTransducer, Serializable):
+  """
+  This implements a bidirectional LSTM and requires about 8.5% less memory per timestep
+  than DyNet's CompactVanillaLSTMBuilder due to avoiding concat operations.
+  It uses 2 :class:`xnmt.lstm.UniLSTMSeqTransducer` objects in each layer.
+
+  Args:
+    exp_global (ExpGlobal): ExpGlobal object to acquire DyNet params and global settings. By default, references the experiment's top level exp_global object.
+    layers (int): number of layers
+    input_dim (int): input dimension; if None, use exp_global.default_layer_dim
+    hidden_dim (int): hidden dimension; if None, use exp_global.default_layer_dim
+    dropout (float): dropout probability; if None, use exp_global.dropout
+    weightnoise_std (float): weight noise standard deviation; if None, use exp_global.weightnoise_std
+    param_init: a :class:`xnmt.param_init.ParamInitializer` or list of :class:`xnmt.param_init.ParamInitializer` objects 
+                specifying how to initialize weight matrices. If a list is given, each entry denotes one layer.
+                If None, use ``exp_global.param_init``
+    bias_init: a :class:`xnmt.param_init.ParamInitializer` or list of :class:`xnmt.param_init.ParamInitializer` objects 
+               specifying how to initialize bias vectors. If a list is given, each entry denotes one layer.
+               If None, use ``exp_global.param_init``
+  """
+  yaml_tag = '!TreeLSTMSeqTransducer'
+  
+  def __init__(self, exp_global=Ref(Path("exp_global")), layers=1, input_dim=None, hidden_dim=None, 
+               dropout=None, weightnoise_std=None, param_init=None, bias_init=None):
+    register_handler(self)
+    # self.num_layers = layers
+    input_dim = input_dim or exp_global.default_layer_dim
+    hidden_dim = hidden_dim or exp_global.default_layer_dim
+    self.hidden_dim = hidden_dim
+    # self.dropout_rate = dropout or exp_global.dropout
+    # self.weightnoise_std = weightnoise_std or exp_global.weight_noise
+    assert hidden_dim % 2 == 0
+    param_init = param_init or exp_global.param_init
+    bias_init = bias_init or exp_global.bias_init
+    model = exp_global.dynet_param_collection.param_col
+    self.p_Wl = model.add_parameters(dim=(hidden_dim*5, hidden_dim), init=param_init.initializer((hidden_dim*5, hidden_dim)))
+    self.p_Wr = model.add_parameters(dim=(hidden_dim*5, hidden_dim), init=param_init.initializer((hidden_dim*5, hidden_dim)))
+    self.p_b  = model.add_parameters(dim=(hidden_dim*5,), init=bias_init.initializer((hidden_dim*5,)))
+    
+  # @handle_xnmt_event
+  # def on_start_sent(self, src):
+  #   self._final_states = None
+
+  # def get_final_states(self):
+  #   return self._final_states
+  def __call__(self, es, transitions):
+    mask = es.mask
+    transitions = np.array(transitions)
+    maxlen = max(len(r) for r in transitions)
+    #padding 2s at the end.
+    if transitions.shape[0]>1:
+      transitions=np.array([a + [2]*(maxlen-len(a)) for a in transitions])
+    Wl = dy.parameter(self.p_Wl)
+    Wr = dy.parameter(self.p_Wr)
+    b = dy.parameter(self.p_b)
+    batch_size=len(transitions) 
+    ha=[]
+    c = []
+    self.hfinals=[]
+    hfinal_state=None
+    cfinal_state=None
+    self.cfinals=[]
+    for i in range(batch_size):
+      hstack=[]
+      cstack=[]
+      htmp=[]
+      #import pdb;pdb.set_trace()
+      #embs=list(reversed(list(es[i])))
+      count=0
+      for j in range(len(transitions[i])):
+        if transitions[i][j]==0:
+          #print("Shift")
+          #shift onto stack
+          e1=dy.reshape(es[count], (batch_size, self.hidden_dim))[i]
+          count+=1
+          hstack.append(e1)
+          cstack.append(e1)
+        elif transitions[i][j]==1:
+          #reduce
+          #print("Reduce")
+          h1=hstack.pop()
+          h2=hstack.pop()
+          c1=cstack.pop()
+          c2=cstack.pop()
+          tmp=dy.affine_transform([b, Wl, h1, Wr, h2])
+          i_gate = dy.pick_range(tmp, 0, self.hidden_dim)
+          fl_gate = dy.pick_range(tmp, self.hidden_dim, self.hidden_dim*2)
+          fr_gate = dy.pick_range(tmp, self.hidden_dim*2, self.hidden_dim*3)
+          o_gate = dy.pick_range(tmp, self.hidden_dim*3, self.hidden_dim*4)
+          cell_inp= dy.pick_range(tmp, self.hidden_dim*4, self.hidden_dim*5)
+          i_gate=dy.tanh(i_gate)
+          cell_inp=dy.logistic(cell_inp)
+          fl_gate=dy.logistic(fl_gate)
+          fr_gate=dy.logistic(fr_gate)
+          o_gate=dy.logistic(o_gate)
+          c_t=dy.cmult(fl_gate, c1)+dy.cmult(fr_gate, c2)+dy.cmult(i_gate,cell_inp)
+          h_t=dy.cmult(o_gate, dy.tanh(c_t))
+          cstack.append(c_t)
+          hstack.append(h_t)
+          htmp.append(h_t)
+          hfinal_state=h_t
+          cfinal_state=c_t
+        else:
+          htmp.append(dy.zeros(self.hidden_dim))
+      self.hfinals.append(h_t)
+      self.cfinals.append(c_t)
+      ha.append(htmp)
+    
+    #dy.reshape(dy.concatenate(self.hfinals),((self.hidden_dim,1), batch_size))
+    #dy.concatenate_to_batch(hfinals)
+    #self._final_states = [FinalTransducerState(dy.reshape(dy.concatenate(self.hfinals),(batch_size, self.hidden_dim)), dy.reshape(dy.concatenate(self.cfinals),(batch_size, self.hidden_dim)))]
+    self._final_states = [FinalTransducerState(dy.concatenate_to_batch(self.hfinals), dy.concatenate_to_batch(self.cfinals))]
+    ha=list(zip_longest(*ha))
+    hh=[]
+    for x in ha:
+      hh.append(list(x))
+    k=[dy.reshape(dy.concatenate(xx), (xx[0].dim()[0][0], len(xx))) for xx in hh]
+    #import pdb;pdb.set_trace()
+    return ExpressionSequence(expr_list=k)
+    #return ExpressionSequence(expr_list=ha, mask=mask)
 

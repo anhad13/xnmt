@@ -50,18 +50,19 @@ class LossEvalTask(Serializable):
     self.desc=desc
 
   def eval(self):
-    if self.src_data == None:
+    if True:#self.src_data == None:
       self.src_data, self.ref_data, self.src_batches, self.ref_batches = \
         xnmt.input_reader.read_parallel_corpus(self.model.src_reader, self.model.trg_reader,
                                         self.src_file, self.ref_file, batcher=self.batcher,
                                         max_src_len=self.max_src_len, max_trg_len=self.max_trg_len)
     loss_val = LossScalarBuilder()
     ref_words_cnt = 0
+    #import pdb;pdb.set_trace()
     for src, trg in zip(self.src_batches, self.ref_batches):
       dy.renew_cg(immediate_compute=settings.IMMEDIATE_COMPUTE, check_validity=settings.CHECK_VALIDITY)
-
       loss_builder = LossBuilder()
       standard_loss = self.model.calc_loss(src, trg, self.loss_calculator)
+
       additional_loss = self.model.calc_additional_loss(standard_loss)
       loss_builder.add_loss("standard_loss", standard_loss)
       loss_builder.add_loss("additional_loss", additional_loss)
