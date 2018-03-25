@@ -106,6 +106,7 @@ class Batcher(object):
   def pack_by_order(self, src, trg, order):
     src_ret, src_curr = [], []
     trg_ret, trg_curr = [], []
+    #import pdb;pdb.set_trace()
     if self.granularity == 'sent':
       for x in range(0, len(order), self.batch_size):
         self.add_single_batch([src[y] for y in order[x:x+self.batch_size]], [trg[y] for y in order[x:x+self.batch_size]], src_ret, trg_ret)
@@ -175,10 +176,11 @@ class SortBatcher(Batcher):
     self.break_ties_randomly = break_ties_randomly
 
   def pack(self, src, trg):
+    x_src=[x[0] for x in src]
     if self.break_ties_randomly:
-      order = np.argsort([self.sort_key(x) + random.uniform(-SortBatcher.__tiebreaker_eps, SortBatcher.__tiebreaker_eps) for x in zip(trg)])
+      order = np.argsort([self.sort_key(x) + random.uniform(-SortBatcher.__tiebreaker_eps, SortBatcher.__tiebreaker_eps) for x in zip(x_src)])
     else:
-      order = np.argsort([self.sort_key(x) for x in zip(trg)])
+      order = np.argsort([self.sort_key(x) for x in zip(x_src)])
     return self.pack_by_order(src, trg, order)
 
   def is_random(self):

@@ -293,9 +293,6 @@ class TreeLSTMSeqTransducer(SeqTransducer, Serializable):
     mask = es.mask
     transitions = np.array(transitions)
     maxlen = max(len(r) for r in transitions)
-    #padding 2s at the end.
-    if transitions.shape[0]>1:
-      transitions=np.array([a + [2]*(maxlen-len(a)) for a in transitions])
     Wl = dy.parameter(self.p_Wl)
     Wr = dy.parameter(self.p_Wr)
     b = dy.parameter(self.p_b)

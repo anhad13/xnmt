@@ -141,8 +141,8 @@ class TreeTranslator(Translator, Serializable, Reportable):
 
   def calc_loss(self, src, trg, loss_calculator):
     self.start_sent(src)
-    tokens=list(src[0])
-    transitions=list(src[1])
+    tokens=[x[0] for x in src]
+    transitions=[x[1] for x in src]
     is_batched=xnmt.batcher.is_batched(src)
     tokens=xnmt.batcher.mark_as_batch(tokens)
     embeddings = self.src_embedder.embed_sent(tokens)

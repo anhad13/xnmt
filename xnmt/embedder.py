@@ -41,13 +41,11 @@ class Embedder(object):
       xnmt.expression_sequence.ExpressionSequence: An expression sequence representing vectors of each word in the input.
     """
     # single mode
-    #import pdb;pdb.set_trace()
     if not xnmt.batcher.is_batched(sent):
       embeddings = [self.embed(word) for word in sent]
     # minibatch mode
     else:
       embeddings = []
-      #import pdb;pdb.set_trace()
       seq_len = len(sent[0])
       for single_sent in sent: assert len(single_sent)==seq_len
       for word_i in range(seq_len):

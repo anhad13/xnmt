@@ -299,16 +299,22 @@ def read_parallel_corpus(src_reader, trg_reader, src_file, trg_file,
     src_len, trg_len = 0, 0
   src_train_iterator = src_reader.read_sents(src_file, filter_ids)
   trg_train_iterator = trg_reader.read_sents(trg_file, filter_ids)
-  for src_sent, trg_sent in zip_longest(src_train_iterator, trg_train_iterator):
+  #import pdb;pdb.set_trace()
+  i=0
+  t_l=list(src_train_iterator[1])
+  for src_sent, trg_sent in zip_longest(src_train_iterator[0], trg_train_iterator):
+    #import pdb;pdb.set_trace()
     if src_sent is None or trg_sent is None:
-      raise RuntimeError(f"training src sentences don't match trg sentences: {src_len or src_reader.count_sents(src_file)} != {trg_len or trg_reader.count_sents(trg_file)}!")
+      raise RuntimeError("training src sentences don't match trg sentences: {src_len or src_reader.count_sents(src_file)} != {trg_len or trg_reader.count_sents(trg_file)}!")
+    #import pdb;pdb.set_trace()
     if max_num_sents and (max_num_sents <= len(src_data)):
       break
     src_len_ok = max_src_len is None or len(src_sent) <= max_src_len
     trg_len_ok = max_trg_len is None or len(trg_sent) <= max_trg_len
     if src_len_ok and trg_len_ok:
-      src_data.append(src_sent)
+      src_data.append([src_sent, t_l[i]])
       trg_data.append(trg_sent)
+    i+=1
 
   # Pack batches
   if batcher != None:
