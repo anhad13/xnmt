@@ -14,13 +14,16 @@ def fails(sentence):
     return (
         sentence.count('"') % 2 
         or " " not in sentence
+        or len(re.split(r'[.!?]+?[ ]+', sentence))>1
         or ": " in sentence
+        or re.search(r'[\%]+', sentence)
         or not re.search("^[A-Z]", sentence)
         or sentence[-1] not in (".", "!", "?")
     )   
 sf=open("train_en.s", "w")
 tf=open("train_de.s","w")
-
+vs=[]
+vt=[]
 for index in range(len(source)):
     s = clean(source[index])
     t = clean(target[index])
@@ -31,6 +34,17 @@ for index in range(len(source)):
     ):  
         continue
     sf.write(s+"\n")
-    tf.write(t+"\n")
+    vs+=s.replace("."," .").replace("?", " ?").replace("!", " !").replace(","," ,").split()
+    tt=t.replace("."," .").replace("?", " ?").replace("!", " !").replace(","," ,")
+    vt+=tt.split()
+    tf.write(tt+"\n")
+vs=list(set(vs))
+vt=list(set(vt))
+fvs=open("vocab.s", "w")
+fvt=open("vocab.t", "w")
+fvs.write("\n".join(vs))
+fvt.write("\n".join(vt))
+fvs.close()
+fvt.close()
 sf.close()
 tf.close()
