@@ -143,6 +143,7 @@ class TreeTranslator(Translator, Serializable, Reportable):
     self.start_sent(src)
     tokens=[x[0] for x in src]
     transitions=[x[1] for x in src]
+    print("Training "+str(len(tokens)) +" pairs.\n")
     is_batched=xnmt.batcher.is_batched(src)
     tokens=xnmt.batcher.mark_as_batch(tokens)
     embeddings = self.src_embedder.embed_sent(tokens)
