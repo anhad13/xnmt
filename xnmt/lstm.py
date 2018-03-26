@@ -307,8 +307,6 @@ class TreeLSTMSeqTransducer(SeqTransducer, Serializable):
       hstack=[]
       cstack=[]
       htmp=[]
-      #import pdb;pdb.set_trace()
-      #embs=list(reversed(list(es[i])))
       count=0
       for j in range(len(transitions[i])):
         if transitions[i][j]==0:
@@ -358,7 +356,5 @@ class TreeLSTMSeqTransducer(SeqTransducer, Serializable):
     for x in ha:
       hh.append(list(x))
     k=[dy.reshape(dy.concatenate(xx), (xx[0].dim()[0][0], len(xx))) for xx in hh]
-    #import pdb;pdb.set_trace()
     return ExpressionSequence(expr_list=k)
-    #return ExpressionSequence(expr_list=ha, mask=mask)
 

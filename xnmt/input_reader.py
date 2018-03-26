@@ -152,10 +152,10 @@ class TreeTextReader(BaseTextReader, Serializable):
       self.vocab = Vocab()
     vocab_reference = self.vocab if self.include_vocab_reference else None
     #import pdb;pdb.set_trace()
-    r1=map(lambda l: SimpleSentenceInput([self.vocab.convert(word) for word in get_tokens(l)] + \
+    r1=map(lambda l: SimpleSentenceInput([self.vocab.convert(word) for word in get_tokens(l.strip())] + \
                                              [self.vocab.convert(Vocab.ES_STR)], vocab_reference),
                self.iterate_filtered(filename, filter_ids))
-    r2=map(lambda l: get_transitions(l),
+    r2=map(lambda l: get_transitions(l.strip()),
                self.iterate_filtered(filename, filter_ids))
     return [r1,r2]
 
@@ -299,7 +299,6 @@ def read_parallel_corpus(src_reader, trg_reader, src_file, trg_file,
     src_len, trg_len = 0, 0
   src_train_iterator = src_reader.read_sents(src_file, filter_ids)
   trg_train_iterator = trg_reader.read_sents(trg_file, filter_ids)
-  #import pdb;pdb.set_trace()
   i=0
   t_l=list(src_train_iterator[1])
   for src_sent, trg_sent in zip_longest(src_train_iterator[0], trg_train_iterator):

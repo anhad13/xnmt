@@ -106,17 +106,18 @@ class Batcher(object):
   def pack_by_order(self, src, trg, order):
     src_ret, src_curr = [], []
     trg_ret, trg_curr = [], []
-    #import pdb;pdb.set_trace()
     if self.granularity == 'sent':
       for x in range(0, len(order), self.batch_size):
         pbatch=[src[y] for y in order[x:x+self.batch_size]], [trg[y] for y in order[x:x+self.batch_size]]
         curr_s=[]
         curr_t=[]
         for i in range(len(pbatch[0])):
-          if (i>0 and len(pbatch[0][i-1])!=len(pbatch[0][i])):
+          if (i>0 and len(pbatch[0][i-1][0])!=len(pbatch[0][i][0])):
             self.add_single_batch(curr_s, curr_t, src_ret, trg_ret)
             curr_s=[]
             curr_t=[]
+            if i==len(pbatch[0])-1:
+              break
           curr_s.append(pbatch[0][i])
           curr_t.append(pbatch[1][i])
           if(i==len(pbatch[0])-1):
