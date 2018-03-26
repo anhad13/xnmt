@@ -116,8 +116,6 @@ class Batcher(object):
             self.add_single_batch(curr_s, curr_t, src_ret, trg_ret)
             curr_s=[]
             curr_t=[]
-            if i==len(pbatch[0])-1:
-              break
           curr_s.append(pbatch[0][i])
           curr_t.append(pbatch[1][i])
           if(i==len(pbatch[0])-1):
