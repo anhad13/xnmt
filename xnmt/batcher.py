@@ -109,7 +109,18 @@ class Batcher(object):
     #import pdb;pdb.set_trace()
     if self.granularity == 'sent':
       for x in range(0, len(order), self.batch_size):
-        self.add_single_batch([src[y] for y in order[x:x+self.batch_size]], [trg[y] for y in order[x:x+self.batch_size]], src_ret, trg_ret)
+        pbatch=[src[y] for y in order[x:x+self.batch_size]], [trg[y] for y in order[x:x+self.batch_size]]
+        curr_s=[]
+        curr_t=[]
+        for i in range(len(pbatch[0])):
+          if (i>0 and len(pbatch[0][i-1])!=len(pbatch[0][i])):
+            self.add_single_batch(curr_s, curr_t, src_ret, trg_ret)
+            curr_s=[]
+            curr_t=[]
+          curr_s.append(pbatch[0][i])
+          curr_t.append(pbatch[1][i])
+          if(i==len(pbatch[0])-1):
+            self.add_single_batch(curr_s, curr_t, src_ret, trg_ret)
     elif self.granularity == 'word':
       my_size = 0
       for i in order:
