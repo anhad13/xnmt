@@ -44,11 +44,21 @@ class MLELoss(Serializable):
 
       dec_state.context = translator.attender.calc_context(dec_state.rnn_state.output())
       word_loss = translator.decoder.calc_loss(dec_state, ref_word)
+      #import pdb;pdb.set_trace()
+      la = dy.log_softmax(translator.decoder.get_scores(dec_state)).npvalue()
+      if len(word_loss.value())>1:
+        la=[x[0] for x in la]
+      print(np.argmax(la))
+      print("-")
+      print(ref_word[0])
+      print(word_loss.value()[0])
+      print("______")
       if xnmt.batcher.is_batched(src) and trg_mask is not None:
         word_loss = trg_mask.cmult_by_timestep_expr(word_loss, i, inverse=True)
       losses.append(word_loss)
       if i < seq_len-1:
         dec_state = translator.decoder.add_input(dec_state, translator.trg_embedder.embed(ref_word))
+
 
     return dy.esum(losses)
 

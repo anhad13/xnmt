@@ -113,7 +113,7 @@ class TreeTranslator(Translator, Serializable, Reportable):
       len_norm = xnmt.serialize.serializer.YamlSerializer().initialize_if_needed(kwargs["len_norm_type"])
     search_args = {}
     if kwargs.get("max_len", None) is not None: search_args["max_len"] = kwargs["max_len"]
-    if kwargs.get("beam", None) is None:
+    if True:#kwargs.get("beam", None) is None:
       self.search_strategy = GreedySearch(**search_args)
     else:
       search_args["beam_size"] = kwargs.get("beam", 1)
@@ -143,13 +143,13 @@ class TreeTranslator(Translator, Serializable, Reportable):
     self.start_sent(src)
     tokens=[x[0] for x in src]
     transitions=[x[1] for x in src]
-    print("Training "+str(len(tokens)) +" pairs.\n")
-    #import pdb;pdb.set_trace()
+    print("Current Batch: "+str(len(tokens)) +" pairs.\n")
     is_batched=xnmt.batcher.is_batched(src)
     tokens=xnmt.batcher.mark_as_batch(tokens)
     embeddings = self.src_embedder.embed_sent(tokens)
     encodings = self.encoder(embeddings, transitions)
     self.attender.init_sent(encodings)
+    #import pdb;pdb.set_trace()
     # Initialize the hidden state from the encoder
     ss = mark_as_batch([Vocab.SS] * len(tokens)) if xnmt.batcher.is_batched(src) else Vocab.SS
     dec_state = self.decoder.initial_state(self.encoder._final_states, self.trg_embedder.embed(ss))
@@ -178,7 +178,7 @@ class TreeTranslator(Translator, Serializable, Reportable):
     else:
       assert src_mask is not None
     outputs = []
-    for sents in list(src):
+    for sents in list([src]):
       self.start_sent(src)
       tokens=list(src[0])
       transitions=list(src[1])
@@ -188,7 +188,8 @@ class TreeTranslator(Translator, Serializable, Reportable):
       self.attender.init_sent(encodings)
       ss = mark_as_batch([Vocab.SS] * len(tokens)) if xnmt.batcher.is_batched(src) else Vocab.SS
       dec_state = self.decoder.initial_state(self.encoder._final_states, self.trg_embedder.embed(ss))
-      output_actions, score = self.search_strategy.generate_output(self.decoder, self.attender, self.trg_embedder, dec_state, src_length=len(sents), forced_trg_ids=forced_trg_ids)
+      output_actions, score = self.search_strategy.generate_output(self.decoder, self.attender, self.trg_embedder, dec_state, src_length=len(tokens[0]), forced_trg_ids=forced_trg_ids)
+      import pdb;pdb.set_trace()
       # In case of reporting
       if self.report_path is not None:
         if self.reporting_src_vocab:

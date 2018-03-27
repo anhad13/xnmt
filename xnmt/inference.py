@@ -121,12 +121,10 @@ class SimpleInference(Serializable):
       src_ret=[]
       ss1=list(src_corpus[0])
       ss2=list(src_corpus[1])
-      #import pdb;pdb.set_trace()
-      for i in range(len(src_corpus)):
+      for i in range(len(ss1)):
         # This is necessary when the batcher does some sort of pre-processing, e.g.
         # when the batcher pads to a particular number of dimensions
         src=[[ss1[0]],[ss2[0]]]
-        #import pdb;pdb.set_trace()
         if self.batcher:
           self.batcher.add_single_batch(src_curr=[src], trg_curr=None, src_ret=src_ret, trg_ret=None)
           src = src_ret.pop()[0]
@@ -141,6 +139,7 @@ class SimpleInference(Serializable):
           if ref_scores != None and (abs(output[0].score-ref_scores[i]) / abs(ref_scores[i])) > 1e-5:
             logger.error(f'Forced decoding score {output[0].score} and loss {ref_scores[i]} do not match at sentence {i}')
           output_txt = output[0].plaintext
+          print(output_txt)
         # Printing to trg file
         fp.write(f"{output_txt}\n")
   

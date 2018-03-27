@@ -291,6 +291,8 @@ class TreeLSTMSeqTransducer(SeqTransducer, Serializable):
   #   return self._final_states
   def __call__(self, es, transitions):
     mask = es.mask
+    #import pdb;pdb.set_trace()
+    transitions=[t+[0,1] for t in transitions]
     transitions = np.array(transitions)
     maxlen = max(len(r) for r in transitions)
     Wl = dy.parameter(self.p_Wl)
@@ -347,9 +349,6 @@ class TreeLSTMSeqTransducer(SeqTransducer, Serializable):
       self.cfinals.append(c_t)
       ha.append(htmp)
     
-    #dy.reshape(dy.concatenate(self.hfinals),((self.hidden_dim,1), batch_size))
-    #dy.concatenate_to_batch(hfinals)
-    #self._final_states = [FinalTransducerState(dy.reshape(dy.concatenate(self.hfinals),(batch_size, self.hidden_dim)), dy.reshape(dy.concatenate(self.cfinals),(batch_size, self.hidden_dim)))]
     self._final_states = [FinalTransducerState(dy.concatenate_to_batch(self.hfinals), dy.concatenate_to_batch(self.cfinals))]
     ha=list(zip_longest(*ha))
     hh=[]
