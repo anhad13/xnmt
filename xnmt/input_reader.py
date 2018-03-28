@@ -141,12 +141,19 @@ class TreeTextReader(BaseTextReader, Serializable):
                   else:
                       tokens.append(word)
                   transitions.append(0)
+      if False:
+        transitions=lb_build(len(tokens))
       return tokens, transitions
     def get_tokens(parse):
       return convert_binary_bracketing(parse)[0]
 
     def get_transitions(parse):
       return convert_binary_bracketing(parse)[1]
+    def lb_build(N):
+      if N==2:
+          return [0,0,1]
+      else:
+          return lb_build(N-1)+[0,1]
 
     if self.vocab is None:
       self.vocab = Vocab()
