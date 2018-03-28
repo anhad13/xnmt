@@ -48,9 +48,9 @@ class MLELoss(Serializable):
       la = dy.log_softmax(translator.decoder.get_scores(dec_state)).npvalue()
       if isinstance(word_loss.value(), list):
         la=[x[0] for x in la]
-        print(np.argmax(la))
+        print(translator.trg_vocab[np.argmax(la)])
         print("-")
-        print(ref_word[0])
+        print(translator.trg_vocab[ref_word[0]])
         print(word_loss.value()[0])
         print("______")
       if xnmt.batcher.is_batched(src) and trg_mask is not None:
