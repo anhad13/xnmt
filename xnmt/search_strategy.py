@@ -42,6 +42,7 @@ class GreedySearch(SearchStrategy):
     attentions = []
 
     while (word_ids==[] or word_ids[-1]!=Vocab.ES) and len(word_ids) < self.max_len:
+      #import pdb;pdb.set_trace()
       if len(word_ids) > 0: # don't feed in the initial start-of-sentence token
         dec_state = decoder.add_input(dec_state, output_embedder.embed(word_ids[-1] if forced_trg_ids is None else forced_trg_ids[len(word_ids)-1]))
       dec_state.context = attender.calc_context(dec_state.rnn_state.output())
@@ -92,7 +93,6 @@ class BeamSearch(SearchStrategy):
 
     completed_hyp = []
     length = 0
-
     # TODO(philip30): Copying the output at each hypothesis expansion is not time efficient (memory efficient?).
     # every hyp should just store the output at its timestep, store the reference to the parent hyp
     # and do backtracking to collect all the outputs.
@@ -129,6 +129,6 @@ class BeamSearch(SearchStrategy):
       completed_hyp = active_hyp
 
     self.len_norm.normalize_completed(completed_hyp, src_length)
-
+    #import pdb;pdb.set_trace()
     result = sorted(completed_hyp, key=lambda x: x.score, reverse=True)[0]
     return result.output, result.score
