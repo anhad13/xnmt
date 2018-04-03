@@ -124,7 +124,7 @@ class SimpleInference(Serializable):
       for i in range(len(ss1)):
         # This is necessary when the batcher does some sort of pre-processing, e.g.
         # when the batcher pads to a particular number of dimensions
-        src=[[ss1[0]],[ss2[0]]]
+        src=[[ss1[i]],[ss2[i]]]
         if self.batcher:
           self.batcher.add_single_batch(src_curr=[src], trg_curr=None, src_ret=src_ret, trg_ret=None)
           src = src_ret.pop()[0]
@@ -134,6 +134,7 @@ class SimpleInference(Serializable):
         else:
           dy.renew_cg(immediate_compute=settings.IMMEDIATE_COMPUTE, check_validity=settings.CHECK_VALIDITY)
           ref_ids = ref_corpus[i] if ref_corpus != None else None
+          #import pdb;pdb.set_trace()
           output = generator.generate_output(src, i, forced_trg_ids=ref_ids)
           # If debugging forced decoding, make sure it matches
           if ref_scores != None and (abs(output[0].score-ref_scores[i]) / abs(ref_scores[i])) > 1e-5:
