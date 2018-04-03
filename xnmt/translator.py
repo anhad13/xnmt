@@ -189,7 +189,7 @@ class TreeTranslator(Translator, Serializable, Reportable):
       ss = mark_as_batch([Vocab.SS] * len(tokens)) if xnmt.batcher.is_batched(src) else Vocab.SS
       dec_state = self.decoder.initial_state(self.encoder._final_states, self.trg_embedder.embed(ss))
       output_actions, score = self.search_strategy.generate_output(self.decoder, self.attender, self.trg_embedder, dec_state, src_length=len(tokens[0]), forced_trg_ids=forced_trg_ids)
-      import pdb;pdb.set_trace()
+      #import pdb;pdb.set_trace()
       # In case of reporting
       if self.report_path is not None:
         if self.reporting_src_vocab:
