@@ -58,11 +58,14 @@ class LossEvalTask(Serializable):
     loss_val = LossScalarBuilder()
     ref_words_cnt = 0
     #import pdb;pdb.set_trace()
+    count=0.0
+    total_wer=0.0;
     for src, trg in zip(self.src_batches, self.ref_batches):
       dy.renew_cg(immediate_compute=settings.IMMEDIATE_COMPUTE, check_validity=settings.CHECK_VALIDITY)
       loss_builder = LossBuilder()
-      standard_loss = self.model.calc_loss(src, trg, self.loss_calculator)
-
+      standard_loss, wer = self.model.calc_loss(src, trg, self.loss_calculator)
+      total_wer+=wer
+      count+=1
       additional_loss = self.model.calc_additional_loss(standard_loss)
       loss_builder.add_loss("standard_loss", standard_loss)
       loss_builder.add_loss("additional_loss", additional_loss)
@@ -71,6 +74,7 @@ class LossEvalTask(Serializable):
       loss_val += loss_builder.get_loss_stats()
 
     loss_stats = {k: v/ref_words_cnt for k, v in loss_val.items()}
+    print("WER: "+str(total_wer/count))
 
     try:
       return LossScore(loss_stats[self.model.get_primary_loss()], loss_stats=loss_stats, desc=self.desc), ref_words_cnt
@@ -107,6 +111,7 @@ class AccuracyEvalTask(Serializable):
     self.desc=desc
 
   def eval(self):
+
     self.inference(generator = self.model,
                    src_file = self.src_file,
                    trg_file = self.hyp_file,

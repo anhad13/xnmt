@@ -38,6 +38,7 @@ class MLELoss(Serializable):
       for j, single_trg in enumerate(trg):
         assert len(single_trg) == seq_len # assert consistent length
         assert 1==len([i for i in range(seq_len) if (trg_mask is None or trg_mask.np_arr[j,i]==0) and single_trg[i]==Vocab.ES]) # assert exactly one unmasked ES token
+    err_rate=0
     for i in range(seq_len):
       ref_word = trg[i] if not xnmt.batcher.is_batched(src) \
                       else xnmt.batcher.mark_as_batch([single_trg[i] for single_trg in trg])
@@ -46,6 +47,7 @@ class MLELoss(Serializable):
       word_loss = translator.decoder.calc_loss(dec_state, ref_word)
       #import pdb;pdb.set_trace()
       la = dy.log_softmax(translator.decoder.get_scores(dec_state)).npvalue()
+      tmp_err_rate=0
       if isinstance(word_loss.value(), list):
         la=[x[0] for x in la]
         print(np.argmax(la))
@@ -53,14 +55,17 @@ class MLELoss(Serializable):
         print(ref_word[0])
         print(word_loss.value()[0])
         print("______")
+      equal=np.argmax(la,axis=0)==ref_word).sum()
+      tmp_err_rate=(1-equal/la.shape[1])
+      err_rate+=tmp_err_rate
       if xnmt.batcher.is_batched(src) and trg_mask is not None:
         word_loss = trg_mask.cmult_by_timestep_expr(word_loss, i, inverse=True)
       losses.append(word_loss)
       if i < seq_len-1:
         dec_state = translator.decoder.add_input(dec_state, translator.trg_embedder.embed(ref_word))
 
-
-    return dy.esum(losses)
+    err_rate=err_rate/seq_len
+    return dy.esum(losses), err_rate
 
 class ReinforceLoss(Serializable):
   yaml_tag = '!ReinforceLoss'
