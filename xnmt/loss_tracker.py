@@ -21,7 +21,7 @@ class LossTracker(object):
 
     self.training_regimen = training_regimen
     self.eval_train_every = 1000
-    self.eval_dev_every = eval_every
+    self.eval_dev_every = 5000
 
     self.epoch_num = 0
 

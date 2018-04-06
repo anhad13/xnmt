@@ -155,7 +155,9 @@ class TreeTranslator(Translator, Serializable, Reportable):
     dec_state = self.decoder.initial_state(self.encoder._final_states, self.trg_embedder.embed(ss))
     # Compose losses
     model_loss = LossBuilder()
-    model_loss.add_loss("mle", loss_calculator(self, dec_state, src, trg))
+    loss, wer=loss_calculator(self, dec_state, src, trg)
+    model_loss.add_loss("mle", loss)
+    print("wer_b:" +str(wer))
     
     if self.calc_global_fertility or self.calc_attention_entropy:
       # philip30: I assume that attention_vecs is already masked src wisely.

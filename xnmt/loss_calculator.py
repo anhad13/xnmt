@@ -49,15 +49,20 @@ class MLELoss(Serializable):
       la = dy.log_softmax(translator.decoder.get_scores(dec_state)).npvalue()
       tmp_err_rate=0
       if isinstance(word_loss.value(), list):
-        la=[x[0] for x in la]
-        print(np.argmax(la))
+        lam=[x[0] for x in la]
+        print(np.argmax(lam))
         print("-")
         print(ref_word[0])
         print(word_loss.value()[0])
         print("______")
-      equal=np.argmax(la,axis=0)==ref_word).sum()
-      tmp_err_rate=(1-equal/la.shape[1])
-      err_rate+=tmp_err_rate
+        equal=(np.argmax(la,axis=0)==ref_word).sum()
+        tmp_err_rate=(1-equal/la.shape[1])
+        err_rate+=tmp_err_rate
+        #import pdb;pdb.set_trace()
+      #import pdb;pdb.set_trace()
+      #equal=(np.argmax(la,axis=0)==ref_word).sum()
+      #tmp_err_rate=(1-equal/la.shape[1])
+      #err_rate+=tmp_err_rate
       if xnmt.batcher.is_batched(src) and trg_mask is not None:
         word_loss = trg_mask.cmult_by_timestep_expr(word_loss, i, inverse=True)
       losses.append(word_loss)
