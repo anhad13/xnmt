@@ -45,7 +45,7 @@ def xnmt_evaluate(ref_file=None, hyp_file=None, evaluator="bleu", desc=None):
   hyp_postprocess = lambda line: line.split()
   ref_postprocess = lambda line: line.split()
   if eval_type == "bleu":
-    ngram = int(eval_param.get("ngram", 4))
+    ngram = int(eval_param.get("ngram", 1))
     evaluator = BLEUEvaluator(ngram=int(ngram), desc=desc)
   elif eval_type == "gleu":
     min_len = int(eval_param.get("min", 1))

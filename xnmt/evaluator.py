@@ -53,7 +53,7 @@ class LossScore(EvalScore, Serializable):
 
 class BLEUScore(EvalScore, Serializable):
   yaml_tag = "!BLEUScore"
-  def __init__(self, bleu, frac_score_list=None, brevity_penalty_score=None, hyp_len=None, ref_len=None, ngram=4, desc=None):
+  def __init__(self, bleu, frac_score_list=None, brevity_penalty_score=None, hyp_len=None, ref_len=None, ngram=1, desc=None):
     self.bleu = bleu
     self.frac_score_list = frac_score_list
     self.brevity_penalty_score = brevity_penalty_score
@@ -191,7 +191,7 @@ class Evaluator(object):
 class BLEUEvaluator(Evaluator):
   # Class for computing BLEU Scores accroding to
   # K Papineni et al "BLEU: a method for automatic evaluation of machine translation"
-  def __init__(self, ngram=4, smooth=0, desc=None):
+  def __init__(self, ngram=1, smooth=0, desc=None):
     """
     Args:
       ngram: default value of 4 is generally used
@@ -241,9 +241,11 @@ class BLEUEvaluator(Evaluator):
     for ref_sent, can_sent in zip(self.reference_corpus, self.candidate_corpus):
       word_counter['reference'] += len(ref_sent)
       word_counter['candidate'] += len(can_sent)
-
+      print(ref_sent)
+      print("---")
+      print(can_sent)
       clip_count_dict, full_count_dict = self.modified_precision(ref_sent, can_sent)
-
+      
       for ngram_type in full_count_dict:
         if ngram_type in clip_count_dict:
           clipped_ngram_count[ngram_type] += sum(clip_count_dict[ngram_type].values())
