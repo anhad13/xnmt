@@ -141,14 +141,14 @@ class TreeTextReader(BaseTextReader, Serializable):
                   else:
                       tokens.append(word)
                   transitions.append(0)
-      type="gt"
+      type="rb"
       if type=="gt":
         transitions=transitions
-      elif type=="lb"
+      elif type=="lb":
         transitions=lb_build(len(tokens))
-      elif type=="rb"
+      elif type=="rb":
         transitions=rb_build(len(tokens))
-      elif type="bal"
+      elif type=="bal":
         transitions=balanced_transitions(len(tokens))
       else:
         print("Invalid")

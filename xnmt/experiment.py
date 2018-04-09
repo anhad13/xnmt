@@ -47,11 +47,11 @@ class Experiment(Serializable):
     eval_scores = "Not evaluated"
     eval_only = self.exp_global.eval_only
     if not eval_only:
-      self.exp_global.dynet_param_collection.revert_to_best_model()
+      #self.exp_global.dynet_param_collection.revert_to_best_model()
       logger.info("> Training")
       self.train.run_training(save_fct = save_fct)
-      #logger.info('reverting learned weights to best checkpoint..')
-      #self.exp_global.dynet_param_collection.revert_to_best_model()
+      logger.info('reverting learned weights to best checkpoint..')
+      self.exp_global.dynet_param_collection.revert_to_best_model()
 
     evaluate_args = self.evaluate
     if evaluate_args:
