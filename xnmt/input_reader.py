@@ -141,8 +141,17 @@ class TreeTextReader(BaseTextReader, Serializable):
                   else:
                       tokens.append(word)
                   transitions.append(0)
-      if False:
+      type="gt"
+      if type=="gt":
+        transitions=transitions
+      elif type=="lb"
         transitions=lb_build(len(tokens))
+      elif type=="rb"
+        transitions=rb_build(len(tokens))
+      elif type="bal"
+        transitions=balanced_transitions(len(tokens))
+      else:
+        print("Invalid")
       return tokens, transitions
     def get_tokens(parse):
       return convert_binary_bracketing(parse)[0]
@@ -154,6 +163,23 @@ class TreeTextReader(BaseTextReader, Serializable):
           return [0,0,1]
       else:
           return lb_build(N-1)+[0,1]
+    def rb_build(N):
+      return [0]*N+[1]*(N-1)
+    def balanced_transitions(N):
+        """
+        Recursively creates a balanced binary tree with N
+        leaves using shift reduce transitions.
+        """
+        if N == 3:
+            return [0, 0, 1, 0, 1]
+        elif N == 2:
+            return [0, 0, 1]
+        elif N == 1:
+            return [0]
+        else:
+            right_N = N // 2
+            left_N = N - right_N
+            return balanced_transitions(left_N) + balanced_transitions(right_N) + [1]
 
     if self.vocab is None:
       self.vocab = Vocab()
